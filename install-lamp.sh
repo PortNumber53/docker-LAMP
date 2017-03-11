@@ -1,21 +1,28 @@
 #!/usr/bin/env bash
 set -eu -o pipefail
 
+# document root
+echo "- Document root will be ${DOCUMENT_ROOT}"
+mkdir -p ${DOCUMENT_ROOT}
+
 # install apache
-pacman -S --noprogressbar --noconfirm --needed apache
+pacman -Syy --noprogressbar --noconfirm --needed apache
 sed -i "s,#ServerName www.example.com:80,ServerName $(hostname --fqdn):80,g" /etc/httpd/conf/httpd.conf
 
 # enable mod rewrite
 sed -i '/^#LoadModule rewrite_module modules\/mod_rewrite.so/s/^#//g' /etc/httpd/conf/httpd.conf
 
+# enable mod_headers
+sed -i '/^#LoadModule rewrite_module modules\/mod_headers.so/s/^#//g' /etc/httpd/conf/httpd.conf
+
 # solve HTTP TRACE vulnerability: http://www.kb.cert.org/vuls/id/867593
 sed -i '$a TraceEnable Off' /etc/httpd/conf/httpd.conf
 
 # install php
-pacman -S --noprogressbar --noconfirm --needed php php-apache
+pacman -Syy --noprogressbar --noconfirm --needed php php-apache
 
 # setup php
-cat > /srv/http/info.php <<EOF
+cat > ${DOCUMENT_ROOT}/info.php <<EOF
 <?php
 // Show all information, defaults to INFO_ALL
 phpinfo();
@@ -37,8 +44,11 @@ sed -i 's,;extension=curl.so,extension=curl.so,g' /etc/php/php.ini
 sed -i 's,;extension=ftp.so,extension=ftp.so,g' /etc/php/php.ini
 sed -i 's,;extension=gettext.so,extension=gettext.so,g' /etc/php/php.ini
 
+# I like nano
+pacman -Syy --noprogressbar --noconfirm --needed nano
+
 # for php-ldap
-pacman -S --noprogressbar --noconfirm --needed php-ldap
+pacman -Syy --noprogressbar --noconfirm --needed php-ldap
 sed -i 's,;extension=ldap.so,extension=ldap.so,g' /etc/php/php.ini
 
 # for php-gd

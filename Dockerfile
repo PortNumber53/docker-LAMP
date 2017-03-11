@@ -1,5 +1,8 @@
 FROM greyltc/archlinux
-MAINTAINER Grey Christoforo <grey@christoforo.net>
+MAINTAINER Me Grimlock <grimlock@portnumber53.com>
+
+ARG DOCUMENT_ROOT=/var/www/html
+ARG DEBUG_MODE=false
 
 ADD install-lamp.sh /usr/sbin/install-lamp
 RUN install-lamp
