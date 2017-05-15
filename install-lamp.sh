@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -eu -o pipefail
 
+pacman -Syy --noprogressbar --noconfirm --needed base-devel tar wget grep
+
+
 # document root
 echo "- Document root will be ${DOCUMENT_ROOT}"
 mkdir -p ${DOCUMENT_ROOT}
@@ -36,6 +39,8 @@ sed -i 's,LoadModule mpm_event_module modules/mod_mpm_event.so,#LoadModule mpm_e
 sed -i 's,#LoadModule mpm_prefork_module modules/mod_mpm_prefork.so,LoadModule mpm_prefork_module modules/mod_mpm_prefork.so,g' /etc/httpd/conf/httpd.conf
 sed -i 's,LoadModule dir_module modules/mod_dir.so,LoadModule dir_module modules/mod_dir.so\nLoadModule php7_module modules/libphp7.so,g' /etc/httpd/conf/httpd.conf
 sed -i '$a Include conf/extra/php7_module.conf' /etc/httpd/conf/httpd.conf
+sed -i 's,Require all denied,Require all granted,g' /etc/httpd/conf/httpd.conf
+
 sed -i 's,;extension=iconv.so,extension=iconv.so,g' /etc/php/php.ini
 sed -i 's,;extension=xmlrpc.so,extension=xmlrpc.so,g' /etc/php/php.ini
 sed -i 's,;extension=zip.so,extension=zip.so,g' /etc/php/php.ini
@@ -72,6 +77,18 @@ sed -i '$a apc.enable_cli=1' /etc/php/conf.d/apcu.ini
 sed -i '$a apc.enabled=1' /etc/php/conf.d/apcu.ini
 sed -i '$a apc.shm_size=32M' /etc/php/conf.d/apcu.ini
 sed -i '$a apc.ttl=7200' /etc/php/conf.d/apcu.ini
+
+# SOAP
+mkdir -p /var/www
+chown -R webuser:webuser /var/www/
+
+echo "WHO AM I?"
+su webuser -c "cd /var/www && wget https://aur.archlinux.org/cgit/aur.git/snapshot/php-pear.tar.gz && tar -xvzf php-pear.tar.gz && cd php-pear && makepkg"
+
+#exit#
+pacman -U --noprogressbar --noconfirm --needed /var/www/php-pear/php-pear-1\:1.10.4-1-any.pkg.tar.xz
+echo "extension=soap.so" > /etc/php/conf.d/soap.ini
+
 
 # enable APC backwards compatibility
 #pacman -S --noconfirm --noprogress --needed php-apcu-bc
@@ -112,6 +129,8 @@ su postgres -c 'psql --command="ALTER USER root WITH SUPERUSER;"'
 su postgres -c '/usr/bin/pg_ctl -s -D /var/lib/postgres/data stop -m fast'
 sed -i 's,;extension=pdo_pgsql.so,extension=pdo_pgsql.so,g' /etc/php/php.ini
 sed -i 's,;extension=pgsql.so,extension=pgsql.so,g' /etc/php/php.ini
+
+sed -i 's,#Include conf/extra/httpd-vhosts.conf,Include conf/extra/httpd-vhosts.conf,g' /etc/httpd/conf/httpd.conf
 
 # for dav suppport
 sed -i 's,#LoadModule dav_module modules/mod_dav.so,LoadModule dav_module modules/mod_dav.so,g' /etc/httpd/conf/httpd.conf

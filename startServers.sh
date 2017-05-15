@@ -22,6 +22,14 @@ mkdir -p /run/postgresql && chown postgres /run/postgresql
 # make sure apache knows the proper server name
 sed -i "s/^ServerName .*/ServerName $(hostname --fqdn)/g" /etc/httpd/conf/httpd.conf
 
+# Allow override All
+sed -i "s/^.*AllowOverride None/AllowOverride All/g" /etc/httpd/conf/httpd.conf
+sed -i "s/^.*Require all denied/Require all granted/g" /etc/httpd/conf/httpd.conf
+
+# Change user
+sed -i "s/^User http/User webuser/g" /etc/httpd/conf/httpd.conf
+sed -i "s/^Group http/Group webuser/g" /etc/httpd/conf/httpd.conf
+
 DOCUMENT_ROOT=${DOCUMENT_ROOT:-/var/www/html}
 mkdir -p ${DOCUMENT_ROOT}
 

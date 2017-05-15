@@ -4,6 +4,15 @@ MAINTAINER Me Grimlock <grimlock@portnumber53.com>
 ARG DOCUMENT_ROOT=/var/www/html
 ARG DEBUG_MODE=false
 
+ARG user=webuser
+ARG group=webuser
+ARG uid=1000
+ARG gid=1000
+
+# Lets use this user to run all the servers
+RUN groupadd -g ${gid} ${group} \
+    && useradd -d "/var/www" -u ${uid} -g ${gid} -m -s /bin/bash ${user}
+
 ADD install-lamp.sh /usr/sbin/install-lamp
 RUN install-lamp
 
@@ -31,6 +40,7 @@ EXPOSE 443
 EXPOSE 5432
 # for MySQL server (mariadb, only if START_MYSQL = true)
 EXPOSE 3306
+
 
 # start servers
 ADD startServers.sh /usr/sbin/start-servers
