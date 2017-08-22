@@ -23,7 +23,7 @@ mkdir -p /run/postgresql && chown postgres /run/postgresql
 sed -i "s/^ServerName .*/ServerName $(hostname --fqdn)/g" /etc/httpd/conf/httpd.conf
 
 # Allow override All
-sed -i "s/^.*AllowOverride None/AllowOverride All/g" /etc/httpd/conf/httpd.conf
+sed -i "s/^.*AllowOverride none/AllowOverride All/g" /etc/httpd/conf/httpd.conf
 sed -i "s/^.*Require all denied/Require all granted/g" /etc/httpd/conf/httpd.conf
 
 # Change user
